@@ -117,11 +117,13 @@ int main(int argc, char **argv)
         // 读取3组数据（每组4个通道，共12个数据点）
         for (int i = 0; i < 3; i++)
         {
+            int32_t adc0 = 0, adc1 = 0, adc2 = 0, adc3 = 0;
+
             // 读取四个通道的原始ADC值
-            float adc0 = ads.readADC_SingleEnded(0);
-            float adc1 = ads.readADC_SingleEnded(1);
-            float adc2 = ads.readADC_SingleEnded(2);
-            float adc3 = ads.readADC_SingleEnded(3);
+            adc0 = ads.readADC_SingleEnded(0);
+            adc1 = ads.readADC_SingleEnded(1);
+            adc2 = ads.readADC_SingleEnded(2);
+            adc3 = ads.readADC_SingleEnded(3);
 
             // 转换为电压值并填充缓冲区
             input_buf[i * 4 + 0] = adc0;
@@ -134,8 +136,8 @@ int main(int argc, char **argv)
                    i, input_buf[i * 4 + 0], input_buf[i * 4 + 1],
                    input_buf[i * 4 + 2], input_buf[i * 4 + 3]);
 
-            // 每组读数之间短暂延迟（10ms）
-            usleep(10000); // usleep单位是微秒
+            // 每组读数之间短暂延迟（250ms）
+            delay(250); // delay 250ms
         }
 
         // 执行推理
@@ -161,8 +163,8 @@ int main(int argc, char **argv)
             send_inference_result(udp_sock, &result);
         }
 
-        // 每1秒更新一次
-        usleep(1000000);
+        // 每250ms更新一次
+        delay(250); // delay1000ms
     }
 
     close(udp_sock);
