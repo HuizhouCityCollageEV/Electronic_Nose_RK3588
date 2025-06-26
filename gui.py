@@ -15,30 +15,38 @@ except ImportError:
     exit(1)
 
 # =================== 配置区域 ===================
-LABELS = ["chengshu", "guoshu", "weishu"]
+LABELS = ["chengshu", "guoshu", "weishu"] #若有新标签，请在此添加
 LABEL_TO_INDEX = {label: idx for idx, label in enumerate(LABELS)}
 
 UDP_PORT = 19198
 
+# 权重矩阵：用于多模态融合分类决策
+WEIGHT_MATRIX = [
+    [5, 4, 'X'],  # chengshu
+    [4, 5, 2],    # guoshu
+    ['X', 2, 1]   # weishu
+]
+
+# 成熟度矩阵：用于查表得到成熟度等级（1~5）
 MATURITY_MATRIX = [
-    [5, 4, 'X'],  # 嗅觉 - 过熟
-    [4, 3, 2],    # 嗅觉 - 成熟
-    ['X', 2, 1]   # 嗅觉 - 未熟
+    [5, 4, 'X'],  # 视觉 - 过熟
+    [4, 3, 2],    # 视觉 - 成熟
+    ['X', 2, 1]   # 视觉 - 未熟
 ]
 # =================================================
 
 class FusionGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("🍌 多模态融合识别系统 v2.2 - 基于RK3588 版")
-        self.root.geometry("1000x500")
+        self.root.title("🍌 多模态融合识别系统 v1.3 - RK3588")
+        self.root.geometry("1100x500")
         self.root.resizable(False, False)
 
         self.smell_data = {}
         self.vision_data = {}
 
         self.sound_enabled = True
-        self.last_result = ""
+        self.last_maturity = None  # 记录上次播放的成熟度等级
 
         self.create_widgets()
         self.start_udp_listener()
@@ -145,29 +153,25 @@ class FusionGUI:
         smell_max_label = max(self.smell_data, key=self.smell_data.get) if self.smell_data else None
         vision_max_label = max(self.vision_data, key=self.vision_data.get) if self.vision_data else None
 
-        maturity_level = 0
+        maturity_level = "未知"
 
         if smell_max_label and vision_max_label:
             smell_idx = LABEL_TO_INDEX[smell_max_label]
             vision_idx = LABEL_TO_INDEX[vision_max_label]
 
-            # 计算成熟度等级
-            smell_maturity = smell_idx + 1
-            vision_maturity = vision_idx + 1
-
-            # 根据提供的矩阵计算成熟度等级
-            try:
-                level = MATURITY_MATRIX[smell_maturity - 1][vision_maturity - 1]
-                if isinstance(level, int):
-                    maturity_level = level
-                else:
-                    maturity_level = "未知"
-            except IndexError:
-                maturity_level = "错误"
-
             # 更新融合得分
             fusion_scores[smell_idx] += self.smell_data[smell_max_label]
             fusion_scores[vision_idx] += self.vision_data[vision_max_label]
+
+            # 使用 MATURITY_MATRIX 判断成熟度等级
+            try:
+                level = MATURITY_MATRIX[smell_idx][vision_idx]
+                if isinstance(level, int) and 1 <= level <= 5:
+                    maturity_level = str(level)
+                else:
+                    maturity_level = "识别中..."
+            except IndexError:
+                maturity_level = "错误"
 
         # 更新UI
         max_score = 0.0
@@ -186,27 +190,27 @@ class FusionGUI:
         self.vision_label.config(text=vision_str or "无数据")
 
         if max_label:
-            self.result_label.config(text=f"最终判定：{max_label} （总置信度：{max_score:.4f}），成熟度等级：{maturity_level}")
+            self.result_label.config(text=f"判定：{max_label} （总置信度：{max_score:.4f}），成熟度等级：{maturity_level}")
 
-            # 播放语音
-            if self.sound_enabled and max_label != self.last_result:
-                sound_path = f"./voices/{max_label}.mp3"
-                if os.path.exists(sound_path):
-                    try:
-                        pygame.mixer.music.load(sound_path)
-                        pygame.mixer.music.play()
-                    except Exception as e:
-                        print(f"[Error] 播放音频失败: {e}")
-                self.last_result = max_label
+            # 播放语音：根据成熟度等级播放对应音频
+            if self.sound_enabled and maturity_level.isdigit():
+                level = int(maturity_level)
+                if level != self.last_maturity:
+                    sound_path = f"./voices/maturity_{level}.mp3"
+                    if os.path.exists(sound_path):
+                        try:
+                            pygame.mixer.music.load(sound_path)
+                            pygame.mixer.music.play()
+                        except Exception as e:
+                            print(f"[Error] 播放音频失败: {e}")
+                    self.last_maturity = level
         else:
             self.result_label.config(text="正在等待模型输入...")
 
 if __name__ == "__main__":
     try:
         root = tk.Tk()
-        print("Tk initialized")
         app = FusionGUI(root)
-        print("FusionGUI created")
         root.mainloop()
     except Exception as e:
         print(f"[Fatal Error]: {e}")

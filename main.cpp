@@ -17,19 +17,22 @@ int get_signal_data(size_t offset, size_t length, float *out_ptr);
 static float input_buf[12];
 
 // 新增：UDP广播初始化
-int init_udp_broadcast(int port) {
+int init_udp_broadcast(int port)
+{
     int sock;
     struct sockaddr_in broadcastAddr;
     int broadcastEnable = 1;
 
     // 创建UDP socket
-    if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
+    if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
+    {
         perror("Socket创建失败");
         return -1;
     }
 
     // 设置广播权限
-    if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable)) < 0) {
+    if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable)) < 0)
+    {
         perror("设置广播权限失败");
         close(sock);
         return -1;
@@ -45,7 +48,8 @@ int init_udp_broadcast(int port) {
 }
 
 // 新增：发送JSON格式的推理结果
-void send_inference_result(int sock, const ei_impulse_result_t* result) {
+void send_inference_result(int sock, const ei_impulse_result_t *result)
+{
     char buffer[1024];
     struct sockaddr_in destAddr;
     destAddr.sin_family = AF_INET;
@@ -55,14 +59,16 @@ void send_inference_result(int sock, const ei_impulse_result_t* result) {
     // 构造完整的JSON对象 {"smell": {...}}
     strcpy(buffer, "{\"smell\":{");
 
-    for (uint16_t i = 0; i < EI_CLASSIFIER_LABEL_COUNT; i++) {
+    for (uint16_t i = 0; i < EI_CLASSIFIER_LABEL_COUNT; i++)
+    {
         strcat(buffer, "\"");
         strcat(buffer, ei_classifier_inferencing_categories[i]);
         strcat(buffer, "\":");
         char temp[32];
         sprintf(temp, "%.5f", result->classification[i].value);
         strcat(buffer, temp);
-        if (i != EI_CLASSIFIER_LABEL_COUNT - 1) {
+        if (i != EI_CLASSIFIER_LABEL_COUNT - 1)
+        {
             strcat(buffer, ",");
         }
     }
@@ -70,16 +76,21 @@ void send_inference_result(int sock, const ei_impulse_result_t* result) {
     strcat(buffer, "}}");
 
     // 发送广播
-    if (sendto(sock, buffer, strlen(buffer), 0, (struct sockaddr*)&destAddr, sizeof(destAddr)) < 0) {
+    if (sendto(sock, buffer, strlen(buffer), 0, (struct sockaddr *)&destAddr, sizeof(destAddr)) < 0)
+    {
         perror("发送失败");
-    } else {
+    }
+    else
+    {
         printf("已广播: %s\n", buffer);
     }
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     // 初始化ADS1115
-    if (!ads.begin(0x48, 4)) {
+    if (!ads.begin(0x48, 4))
+    {
         printf("ADS1115 初始化失败.\n");
         return 1;
     }
@@ -95,14 +106,17 @@ int main(int argc, char **argv) {
 
     // 初始化UDP广播
     int udp_sock = init_udp_broadcast(19198);
-    if (udp_sock < 0) {
+    if (udp_sock < 0)
+    {
         printf("UDP初始化失败，继续运行但不广播。\n");
     }
 
     // 主循环
-    while (1) {
+    while (1)
+    {
         // 读取3组数据（每组4个通道，共12个数据点）
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++)
+        {
             // 读取四个通道的原始ADC值
             float adc0 = ads.readADC_SingleEnded(0);
             float adc1 = ads.readADC_SingleEnded(1);
@@ -130,7 +144,8 @@ int main(int argc, char **argv) {
 
         // 打印预测结果
         printf("预测: \n");
-        for (uint16_t i = 0; i < EI_CLASSIFIER_LABEL_COUNT; i++) {
+        for (uint16_t i = 0; i < EI_CLASSIFIER_LABEL_COUNT; i++)
+        {
             printf("  %s : %.5f \n",
                    ei_classifier_inferencing_categories[i],
                    result.classification[i].value);
@@ -141,7 +156,8 @@ int main(int argc, char **argv) {
 #endif
 
         // 如果UDP初始化成功，就发送广播
-        if (udp_sock >= 0) {
+        if (udp_sock >= 0)
+        {
             send_inference_result(udp_sock, &result);
         }
 
@@ -154,8 +170,10 @@ int main(int argc, char **argv) {
 }
 
 // 回调函数：提供最新的ADC数据
-int get_signal_data(size_t offset, size_t length, float *out_ptr) {
-    for (size_t i = 0; i < length; i++) {
+int get_signal_data(size_t offset, size_t length, float *out_ptr)
+{
+    for (size_t i = 0; i < length; i++)
+    {
         out_ptr[i] = input_buf[offset + i];
     }
     return EIDSP_OK;
