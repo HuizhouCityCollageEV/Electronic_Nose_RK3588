@@ -136,8 +136,8 @@ int main(int argc, char **argv)
                    i, input_buf[i * 4 + 0], input_buf[i * 4 + 1],
                    input_buf[i * 4 + 2], input_buf[i * 4 + 3]);
 
-            // 每组读数之间短暂延迟（250ms）
-            delay(250); // delay 250ms
+            // 每组读数之间短暂延迟（每组83ms,总耗时250ms左右）
+            delay(83); // delay 83ms
         }
 
         // 执行推理
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
         }
 
         // 每250ms更新一次
-        delay(250); // delay1000ms
+        delay(250); // delay 250ms
     }
 
     close(udp_sock);
