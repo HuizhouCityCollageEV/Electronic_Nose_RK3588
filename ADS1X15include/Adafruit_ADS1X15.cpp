@@ -136,7 +136,7 @@ int16_t Adafruit_ADS1X15::readADC_SingleEnded(uint8_t channel) {
     return 0;
   }
 
-  startADCReading(MUX_BY_CHANNEL[channel], /*continuous=*/true);
+  startADCReading(MUX_BY_CHANNEL[channel], /*continuous=*/false);
 
   // Wait for the conversion to complete
   while (!conversionComplete())

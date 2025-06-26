@@ -44,13 +44,10 @@ int main(int argc, char **argv) {
             input_buf[i*4 + 3] = adc3;
             
             // 打印当前读数
-            printf("Group %.2f: AIN0:%.2f, AIN1:%.2f, AIN2:%.2f, AIN3:%.2f\n",
+            printf("Group %d: AIN0:%d, AIN1:%df, AIN2:%df, AIN3:%.d\n",
                    i, input_buf[i*4+0], input_buf[i*4+1],
                    input_buf[i*4+2], input_buf[i*4+3]);
-            // printf("Group %d: AIN0:%.3fV, AIN1:%.3fV, AIN2:%.3fV, AIN3:%.3fV\n",
-            //        i, input_buf[i*4+0], input_buf[i*4+1],
-            //        input_buf[i*4+2], input_buf[i*4+3]);
-            
+
             // 每组读数之间短暂延迟（10ms）- 与原始代码一致
             delay(10);
         }
@@ -60,9 +57,9 @@ int main(int argc, char **argv) {
         printf("识别结果: %d\n", res);
 
         // 打印预测结果
-        printf("预测:\n");
+        printf("预测: \n");
         for (uint16_t i = 0; i < EI_CLASSIFIER_LABEL_COUNT; i++) {
-            printf("  %s: %.5f\n", 
+            printf("  %s : %.5f \n", 
                    ei_classifier_inferencing_categories[i],
                    result.classification[i].value);
         }
@@ -71,8 +68,8 @@ int main(int argc, char **argv) {
         printf("Anomaly score: %.3f\n", result.anomaly);
 #endif
 
-        // 每500ms更新一次 - 与原始代码一致
-        delay(500);
+        // 每1s更新一次 - 与原始代码一致
+        delay(1000);
     }
     return 0;
 }
