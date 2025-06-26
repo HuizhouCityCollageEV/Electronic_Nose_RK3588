@@ -6,7 +6,10 @@ if [ $# -eq 0 ]; then
     echo "用法: $0 <参数>"
     echo "可用参数:"
     echo "  collect    - 数据收集程序"
+    echo "  collect    - 数据收集程序"
     echo "  smell      - 气味识别程序"
+    echo "  vision     - 视觉识别程序"
+    echo "  all        - 气味&视觉识别程序"
     exit 1
 fi
 
@@ -26,21 +29,31 @@ case "$command" in
         # 检查第二个参数是否是数字
         re='^[0-9]+$'
         if ! [[ $2 =~ $re ]]; then
-            echo "错误：'$2' 不是一个有效的整数（正整数）"
+            echo "错误：'$2' 不是一个有效的参数(数字)"
             exit 1
         fi
         echo "正在启动数据收集程序，运行 $2 分钟..."
-        ./collect "$2"
+        sudo ./collect "$2"
         ;;
     smell)
         echo "正在启动气味识别程序..."
-        ./app
+        sudo ./app
+        ;;
+   vision)
+        echo "正在启动视觉识别程序..."
+        python ./banana_vision/run.py
+        ;;
+   all)
+        echo "正在启动气味&视觉识别程序..."
+        sudo ./app && python ./banana_vision/run.py
         ;;
     *)
         echo "无效的参数: $command"
         echo "可用参数:"
         echo "  collect    - 数据收集程序"
         echo "  smell      - 气味识别程序"
+        echo "  vision     - 视觉识别程序"
+        echo "  all        - 气味&视觉识别程序"
         exit 1
         ;;
 esac
