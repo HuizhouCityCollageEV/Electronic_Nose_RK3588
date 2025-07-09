@@ -42,7 +42,7 @@ sudo chmod +x ./run.sh
 
 构建完成后将生成两个可执行文件：
 - `app`：气味识别主程序  
-- `collect_program`：数据收集程序  
+- `collect`：数据收集程序  
 
 ---
 
@@ -66,9 +66,9 @@ sudo chmod +x ./run.sh
 
 #### 示例：
 ```bash
-./run.sh smell       # 单独运行气味识别
-./run.sh vision      # 单独运行视觉识别
-./run.sh all         # 同时运行气味识别和视觉识别
+./run.sh smell       # 运行气味识别
+./run.sh vision      # 运行视觉识别
+python ./gui.py      # 启动融合计算程序
 ```
 
 > 注意：所有程序默认在后台运行。
